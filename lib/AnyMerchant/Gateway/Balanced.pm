@@ -19,14 +19,26 @@ has marketplace => (
     },
 );
 
-
 sub authorize {
-    my ($self) = @_;
+    my ($self, %params) = @_;
+    my $amount = $params{amount};
+    my $card   = $params{source};
+
+    my $hold = {
+        amount     => $amount,
+        source_uri => $card->{uri},
+    };
+    my $holds_uri = $card->{account}{holds_uri};
+    return $self->post($holds_uri, $hold);
 }
 
 sub capture {
-    my ($self, $hold_uri, %params) = @_;
-    my $data = { hold_uri => $hold_uri, %params };
+    my ($self, %params) = @_;
+    my $amount        = $params{amount};
+    my $authorization = $params{authorization};
+
+    my $data = { hold_uri => $authorization };
+    $data->{amount} = $amount if $amount;
     return $self->post($self->marketplace->{debits_uri}, $data);
 }
 
